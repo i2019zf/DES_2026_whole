@@ -64,3 +64,18 @@ exports.generateRollingTicket = async (req, res) => {
         res.status(500).json({ message: "Error generating dynamic ticket" });
     }
 };
+exports.verifyQR = async (req, res) => {
+    const { token } = req.body;
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userResult = await db.query('SELECT * FROM members WHERE email = $1', [decoded.email]);
+        
+        if (userResult.rows.length > 0) {
+            res.json({ success: true, message: "Valid Entry", user: userResult.rows[0] });
+        } else {
+            res.status(403).json({ success: false, message: "Invalid Member" });
+        }
+    } catch (err) {
+        res.status(401).json({ success: false, message: "QR Expired or Fake" });
+    }
+};

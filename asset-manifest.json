@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/DESday_26/static/css/main.2f43cb1b.css",
+    "main.js": "/DESday_26/static/js/main.d4bc629a.js",
+    "static/js/453.20359781.chunk.js": "/DESday_26/static/js/453.20359781.chunk.js",
+    "index.html": "/DESday_26/index.html",
+    "main.2f43cb1b.css.map": "/DESday_26/static/css/main.2f43cb1b.css.map",
+    "main.d4bc629a.js.map": "/DESday_26/static/js/main.d4bc629a.js.map",
+    "453.20359781.chunk.js.map": "/DESday_26/static/js/453.20359781.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.2f43cb1b.css",
+    "static/js/main.d4bc629a.js"
+  ]
+}

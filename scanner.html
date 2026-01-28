@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DES Scanner | CONVERGENCE 2026</title>
+    <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #facc15; }
+        #preview { width: 90%; border: 5px solid black; box-shadow: 10px 10px 0px #000; }
+        .result { margin-top: 20px; padding: 20px; border: 5px solid black; display: none; }
+        .success { background: #4ade80; }
+        .fail { background: #ff4d4d; color: white; }
+    </style>
+</head>
+<body>
+    <h1>DES STAFF SCANNER</h1>
+    <video id="preview"></video>
+    <div id="status" class="result"></div>
+
+    <script>
+        const video = document.getElementById('preview');
+        const status = document.getElementById('status');
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
+            video.srcObject = stream;
+            video.setAttribute("playsinline", true);
+            video.play();
+            requestAnimationFrame(tick);
+        });
+
+        function tick() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                const canvas = document.createElement("canvas");
+                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+                if (code) {
+                    verifyTicket(code.data);
+                }
+            }
+            requestAnimationFrame(tick);
+        }
+
+        async function verifyTicket(token) {
+            // Point this to your NGROK URL
+            const res = await fetch('https://iodimetric-malakai-indiscriminately.ngrok-free.dev/api/auth/verify-qr', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token })
+            });
+            const data = await res.json();
+            
+            status.style.display = 'block';
+            status.className = `result ${data.success ? 'success' : 'fail'}`;
+            status.innerHTML = `<h2>${data.message}</h2><h3>${data.user?.name || ''}</h3>`;
+        }
+    </script>
+</body>
+</html>

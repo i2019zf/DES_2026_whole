@@ -4,21 +4,68 @@
     <title>DES Scanner | CONVERGENCE 2026</title>
     <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #facc15; }
-        #preview { width: 90%; border: 5px solid black; box-shadow: 10px 10px 0px #000; }
-        .result { margin-top: 20px; padding: 20px; border: 5px solid black; display: none; }
-        .success { background: #4ade80; }
-        .fail { background: #ff4d4d; color: white; }
+        :root {
+            --earth-green: #4ade80;
+            --caution-yellow: #facc15;
+            --error-red: #ff4d4d;
+            --deep-stone: #1a1a1a;
+        }
+        body { font-family: 'Inter', sans-serif; text-align: center; background: var(--caution-yellow); margin: 0; padding: 20px; }
+        #preview { width: 100%; max-width: 400px; border: 5px solid var(--deep-stone); box-shadow: 10px 10px 0px var(--deep-stone); margin-bottom: 20px; }
+        
+        .result { 
+            margin: 20px auto; 
+            width: 90%; 
+            max-width: 380px; 
+            padding: 20px; 
+            border: 5px solid var(--deep-stone); 
+            display: none; 
+            position: relative;
+            overflow: hidden;
+            background: white;
+            box-shadow: 8px 8px 0px var(--deep-stone);
+        }
+
+        .success { background: var(--earth-green); }
+        .fail { background: var(--error-red); color: white; }
+
+        /* Decreasing Bar Animation */
+        .timer-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 10px;
+            background: rgba(0,0,0,0.3);
+            width: 100%;
+        }
+
+        .animate-timer {
+            animation: shrink 4s linear forwards;
+        }
+
+        @keyframes shrink {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
     </style>
 </head>
 <body>
-    <h1>DES STAFF SCANNER</h1>
+    <h1 style="text-transform: uppercase;">DES Staff Scanner</h1>
+    <p>CONVERGENCE 2026</p>
+    
     <video id="preview"></video>
-    <div id="status" class="result"></div>
+    
+    <div id="status" class="result">
+        <div id="content"></div>
+        <div id="timerBar" class="timer-bar"></div>
+    </div>
 
     <script>
         const video = document.getElementById('preview');
-        const status = document.getElementById('status');
+        const statusDiv = document.getElementById('status');
+        const content = document.getElementById('content');
+        const timerBar = document.getElementById('timerBar');
+        let isProcessing = false;
 
         navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
             video.srcObject = stream;
@@ -28,7 +75,7 @@
         });
 
         function tick() {
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            if (video.readyState === video.HAVE_ENOUGH_DATA && !isProcessing) {
                 const canvas = document.createElement("canvas");
                 canvas.height = video.videoHeight;
                 canvas.width = video.videoWidth;
@@ -38,6 +85,7 @@
                 const code = jsQR(imageData.data, imageData.width, imageData.height);
 
                 if (code) {
+                    isProcessing = true; // Pause scanning while showing result
                     verifyTicket(code.data);
                 }
             }
@@ -45,17 +93,170 @@
         }
 
         async function verifyTicket(token) {
-            // Point this to your NGROK URL
-            const res = await fetch('https://iodimetric-malakai-indiscriminately.ngrok-free.dev/api/auth/verify-qr', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token })
-            });
-            const data = await res.json();
-            
-            status.style.display = 'block';
-            status.className = `result ${data.success ? 'success' : 'fail'}`;
-            status.innerHTML = `<h2>${data.message}</h2><h3>${data.user?.name || ''}</h3>`;
+            try {
+                // REPLACE WITH YOUR ACTUAL NGROK URL
+                const res = await fetch('<!DOCTYPE html>
+<html>
+<head>
+    <title>DES Scanner | CONVERGENCE 2026</title>
+    <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
+    <style>
+        :root {
+            --earth-green: #4ade80;
+            --caution-yellow: #facc15;
+            --error-red: #ff4d4d;
+            --deep-stone: #1a1a1a;
+        }
+        body { font-family: 'Inter', sans-serif; text-align: center; background: var(--caution-yellow); margin: 0; padding: 20px; }
+        #preview { width: 100%; max-width: 400px; border: 5px solid var(--deep-stone); box-shadow: 10px 10px 0px var(--deep-stone); margin-bottom: 20px; }
+        
+        .result { 
+            margin: 20px auto; 
+            width: 90%; 
+            max-width: 380px; 
+            padding: 20px; 
+            border: 5px solid var(--deep-stone); 
+            display: none; 
+            position: relative;
+            overflow: hidden;
+            background: white;
+            box-shadow: 8px 8px 0px var(--deep-stone);
+        }
+
+        .success { background: var(--earth-green); }
+        .fail { background: var(--error-red); color: white; }
+
+        /* Decreasing Bar Animation */
+        .timer-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 10px;
+            background: rgba(0,0,0,0.3);
+            width: 100%;
+        }
+
+        .animate-timer {
+            animation: shrink 4s linear forwards;
+        }
+
+        @keyframes shrink {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-transform: uppercase;">DES Staff Scanner</h1>
+    <p>CONVERGENCE 2026</p>
+    
+    <video id="preview"></video>
+    
+    <div id="status" class="result">
+        <div id="content"></div>
+        <div id="timerBar" class="timer-bar"></div>
+    </div>
+
+    <script>
+        const video = document.getElementById('preview');
+        const statusDiv = document.getElementById('status');
+        const content = document.getElementById('content');
+        const timerBar = document.getElementById('timerBar');
+        let isProcessing = false;
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
+            video.srcObject = stream;
+            video.setAttribute("playsinline", true);
+            video.play();
+            requestAnimationFrame(tick);
+        });
+
+        function tick() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA && !isProcessing) {
+                const canvas = document.createElement("canvas");
+                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+                if (code) {
+                    isProcessing = true; // Pause scanning while showing result
+                    verifyTicket(code.data);
+                }
+            }
+            requestAnimationFrame(tick);
+        }
+
+        async function verifyTicket(token) {
+            try {
+                // REPLACE WITH YOUR ACTUAL NGROK URL
+                const res = await fetch('https://your-ngrok-url.ngrok-free.app/api/auth/verify-qr', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+                const data = await res.json();
+                
+                showResult(data);
+            } catch (err) {
+                showResult({ success: false, message: "CONNECTION ERROR" });
+            }
+        }
+
+        function showResult(data) {
+            statusDiv.style.display = 'block';
+            statusDiv.className = `result ${data.success ? 'success' : 'fail'}`;
+            content.innerHTML = `
+                <h2 style="margin:0">${data.message}</h2>
+                <p style="font-weight:bold; font-size:1.2rem">${data.user?.name || ''}</p>
+            `;
+
+            // Reset and trigger timer bar animation
+            timerBar.classList.remove('animate-timer');
+            void timerBar.offsetWidth; // Trigger reflow
+            timerBar.classList.add('animate-timer');
+
+            // Hide after 4 seconds and resume scanner
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+                isProcessing = false;
+            }, 4000);
+        }
+    </script>
+</body>
+</html>/api/auth/verify-qr', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+                const data = await res.json();
+                
+                showResult(data);
+            } catch (err) {
+                showResult({ success: false, message: "CONNECTION ERROR" });
+            }
+        }
+
+        function showResult(data) {
+            statusDiv.style.display = 'block';
+            statusDiv.className = `result ${data.success ? 'success' : 'fail'}`;
+            content.innerHTML = `
+                <h2 style="margin:0">${data.message}</h2>
+                <p style="font-weight:bold; font-size:1.2rem">${data.user?.name || ''}</p>
+            `;
+
+            // Reset and trigger timer bar animation
+            timerBar.classList.remove('animate-timer');
+            void timerBar.offsetWidth; // Trigger reflow
+            timerBar.classList.add('animate-timer');
+
+            // Hide after 4 seconds and resume scanner
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+                isProcessing = false;
+            }, 4000);
         }
     </script>
 </body>

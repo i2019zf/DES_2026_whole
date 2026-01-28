@@ -4,11 +4,12 @@
     <title>DES Scanner | CONVERGENCE 2026</title>
     <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
     <style>
-        :root { --green: #4ade80; --yellow: #facc15; --red: #ff4d4d; --black: #1a1a1a; }
+        :root { --green: #4ade80; --yellow: #facc15; --red: #ff4d4d; --blue: #3b82f6; --black: #1a1a1a; }
         body { font-family: sans-serif; text-align: center; background: var(--yellow); margin: 0; padding: 20px; }
         #preview { width: 100%; max-width: 400px; border: 5px solid var(--black); box-shadow: 10px 10px 0px var(--black); }
         .result { margin: 20px auto; width: 90%; max-width: 380px; padding: 20px; border: 5px solid var(--black); display: none; position: relative; background: white; box-shadow: 8px 8px 0px var(--black); }
         .success { background: var(--green); }
+        .duplicate { background: var(--blue); color: white; }
         .fail { background: var(--red); color: white; }
         .timer-bar { position: absolute; bottom: 0; left: 0; height: 10px; background: rgba(0,0,0,0.3); width: 100%; }
         .animate-timer { animation: shrink 4s linear forwards; }
@@ -16,8 +17,7 @@
     </style>
 </head>
 <body>
-    <h1 style="text-transform: uppercase;">DES Staff Scanner</h1>
-    <p>CONVERGENCE 2026</p>
+    <h1>DES STAFF SCANNER</h1>
     <video id="preview"></video>
     <div id="status" class="result">
         <div id="content"></div>
@@ -54,24 +54,29 @@
 
         async function verifyTicket(token) {
             try {
-                // REPLACE WITH YOUR ACTUAL NGROK URL
                 const res = await fetch('https://iodimetric-malakai-indiscriminately.ngrok-free.dev/api/auth/verify-qr', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token })
                 });
                 const data = await res.json();
-                showResult(data);
-            } catch (err) { showResult({ success: false, message: "CONNECTION ERROR" }); }
+                showResult(data, res.status);
+            } catch (err) { showResult({ message: "SERVER ERROR" }, 500); }
         }
 
-        function showResult(data) {
+        function showResult(data, status) {
             statusDiv.style.display = 'block';
-            statusDiv.className = `result ${data.success ? 'success' : 'fail'}`;
-            content.innerHTML = `
-                <h2 style="margin:0">${data.message}</h2>
-                <p style="font-weight:bold; font-size:1.2rem">${data.user ? data.user.name : ''}</p>
-            `;
+            if (status === 200) {
+                statusDiv.className = 'result success';
+                content.innerHTML = `<h2>VALID ENTRY</h2><p>${data.user.name}</p>`;
+            } else if (status === 409) {
+                statusDiv.className = 'result duplicate';
+                content.innerHTML = `<h2>ALREADY SCANNED</h2><p>${data.user.name}</p>`;
+            } else {
+                statusDiv.className = 'result fail';
+                content.innerHTML = `<h2>${data.message}</h2>`;
+            }
+
             timerBar.classList.remove('animate-timer');
             void timerBar.offsetWidth; 
             timerBar.classList.add('animate-timer');

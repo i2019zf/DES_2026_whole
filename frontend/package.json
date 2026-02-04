@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://i2019zf.github.io/DES_26_whole", 
+  "homepage": "https://i2019zf.github.io/DES_2026_whole", 
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

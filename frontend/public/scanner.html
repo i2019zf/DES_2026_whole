@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DES Scanner | CONVERGENCE 2026</title>
+    <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
+    <style>
+        :root { --green: #4ade80; --yellow: #facc15; --red: #ff4d4d; --blue: #3b82f6; --black: #1a1a1a; }
+        body { font-family: sans-serif; text-align: center; background: var(--yellow); margin: 0; padding: 20px; }
+        #preview { width: 100%; max-width: 400px; border: 5px solid var(--black); box-shadow: 10px 10px 0px var(--black); }
+        .result { margin: 20px auto; width: 90%; max-width: 380px; padding: 20px; border: 5px solid var(--black); display: none; position: relative; background: white; box-shadow: 8px 8px 0px var(--black); }
+        .success { background: var(--green); }
+        .duplicate { background: var(--blue); color: white; }
+        .fail { background: var(--red); color: white; }
+        .timer-bar { position: absolute; bottom: 0; left: 0; height: 10px; background: rgba(0,0,0,0.3); width: 100%; }
+        .animate-timer { animation: shrink 4s linear forwards; }
+        @keyframes shrink { from { width: 100%; } to { width: 0%; } }
+    </style>
+</head>
+<body>
+    <h1>DES STAFF SCANNER</h1>
+    <video id="preview"></video>
+    <div id="status" class="result">
+        <div id="content"></div>
+        <div id="timerBar" class="timer-bar"></div>
+    </div>
+
+    <script>
+        const video = document.getElementById('preview');
+        const statusDiv = document.getElementById('status');
+        const content = document.getElementById('content');
+        const timerBar = document.getElementById('timerBar');
+        let isProcessing = false;
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
+            video.srcObject = stream;
+            video.setAttribute("playsinline", true);
+            video.play();
+            requestAnimationFrame(tick);
+        });
+
+        function tick() {
+            if (video.readyState === video.HAVE_ENOUGH_DATA && !isProcessing) {
+                const canvas = document.createElement("canvas");
+                canvas.height = video.videoHeight;
+                canvas.width = video.videoWidth;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                if (code) { isProcessing = true; verifyTicket(code.data); }
+            }
+            requestAnimationFrame(tick);
+        }
+
+        async function verifyTicket(token) {
+            try {
+                const res = await fetch('https://iodimetric-malakai-indiscriminately.ngrok-free.dev/api/auth/verify-qr', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+                const data = await res.json();
+                showResult(data, res.status);
+            } catch (err) { showResult({ message: "SERVER ERROR" }, 500); }
+        }
+
+        function showResult(data, status) {
+            statusDiv.style.display = 'block';
+            if (status === 200) {
+                statusDiv.className = 'result success';
+                content.innerHTML = `<h2>VALID ENTRY</h2><p>${data.user.name}</p>`;
+            } else if (status === 409) {
+                statusDiv.className = 'result duplicate';
+                content.innerHTML = `<h2>ALREADY SCANNED</h2><p>${data.user.name}</p>`;
+            } else {
+                statusDiv.className = 'result fail';
+                content.innerHTML = `<h2>${data.message}</h2>`;
+            }
+
+            timerBar.classList.remove('animate-timer');
+            void timerBar.offsetWidth; 
+            timerBar.classList.add('animate-timer');
+            setTimeout(() => { statusDiv.style.display = 'none'; isProcessing = false; }, 4000);
+        }
+    </script>
+</body>
+</html>

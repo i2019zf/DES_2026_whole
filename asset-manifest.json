@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/DES_2026_whole/static/css/main.2f43cb1b.css",
+    "main.js": "/DES_2026_whole/static/js/main.72e9d154.js",
+    "static/js/453.20359781.chunk.js": "/DES_2026_whole/static/js/453.20359781.chunk.js",
+    "index.html": "/DES_2026_whole/index.html",
+    "main.2f43cb1b.css.map": "/DES_2026_whole/static/css/main.2f43cb1b.css.map",
+    "main.72e9d154.js.map": "/DES_2026_whole/static/js/main.72e9d154.js.map",
+    "453.20359781.chunk.js.map": "/DES_2026_whole/static/js/453.20359781.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.2f43cb1b.css",
+    "static/js/main.72e9d154.js"
+  ]
+}

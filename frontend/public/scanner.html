@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DES Scanner | CONVERGENCE 2026</title>
     <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
     <style>
@@ -10,51 +12,77 @@
         }
         
         body { 
-            font-family: 'Segoe UI', sans-serif; background: var(--yellow); 
-            margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--yellow); 
+            margin: 0; display: flex; flex-direction: column; align-items: center; 
+            min-height: 100vh; overflow-x: hidden;
         }
 
         .header {
             background: var(--black); color: var(--white); width: 100%;
-            padding: 20px 0; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            padding: 15px 0; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
-        /* Login Screen Styling */
+        .header h1 { font-size: 1.2rem; margin: 5px 0; letter-spacing: 1px; }
+        .header p { margin: 0; font-size: 0.8rem; opacity: 0.8; }
+
+        /* Sections */
+        #loginScreen, #scannerScreen {
+            width: 90%; max-width: 450px; display: flex;
+            flex-direction: column; align-items: center; padding-top: 25px;
+        }
+
+        /* Login Styling */
         #loginScreen {
-            margin-top: 50px; background: white; padding: 30px;
+            background: white; padding: 30px; margin-top: 40px;
             border: 5px solid var(--black); box-shadow: 10px 10px 0px var(--black);
-            text-align: center; width: 80%; max-width: 350px;
+            box-sizing: border-box;
         }
 
         input {
-            width: 100%; padding: 12px; margin: 15px 0; border: 3px solid var(--black);
-            box-sizing: border-box; font-family: monospace; font-size: 1rem;
+            width: 100%; padding: 15px; margin: 15px 0; border: 3px solid var(--black);
+            box-sizing: border-box; font-family: monospace; font-size: 1.1rem;
         }
 
         .neo-button {
-            background: var(--black); color: white; border: none; padding: 12px 25px;
+            background: var(--black); color: white; border: none; padding: 15px;
             font-weight: bold; cursor: pointer; width: 100%; text-transform: uppercase;
+            font-size: 1rem; transition: transform 0.1s;
         }
+        .neo-button:active { transform: translate(2px, 2px); }
 
-        /* Scanner Screen (Hidden by default) */
-        #scannerScreen { display: none; width: 100%; flex-direction: column; align-items: center; }
+        /* Scanner Screen */
+        #scannerScreen { display: none; }
 
         .scanner-container {
-            position: relative; width: 90%; max-width: 500px; aspect-ratio: 1 / 1;
-            border: 8px solid var(--black); box-shadow: 15px 15px 0px var(--black);
-            background: #000; margin-top: 20px;
+            position: relative; width: 100%; aspect-ratio: 1 / 1;
+            border: 8px solid var(--black); box-shadow: 12px 12px 0px var(--black);
+            background: #000; overflow: hidden;
         }
 
         #preview { width: 100%; height: 100%; object-fit: cover; }
 
-        .result { 
-            position: fixed; bottom: 40px; width: 85%; max-width: 400px; 
-            padding: 25px; border: 5px solid var(--black); display: none; 
-            background: white; box-shadow: 10px 10px 0px var(--black);
+        .scan-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+            background: var(--green); opacity: 0.6; animation: moveLine 2.5s linear infinite;
         }
+
+        @keyframes moveLine { 0% { top: 0%; } 100% { top: 100%; } }
+
+        /* Centered Result Popup */
+        .result { 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 85%; max-width: 320px; padding: 35px; border: 6px solid var(--black); 
+            display: none; z-index: 100; background: white; box-shadow: 15px 15px 0px var(--black);
+            text-align: center; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn { from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } }
 
         .success { background: var(--green); }
         .fail { background: var(--red); color: white; }
+        .duplicate { background: var(--blue); color: white; }
+
+        .dept-footer { margin-top: auto; padding: 30px; font-weight: bold; font-size: 0.8rem; }
     </style>
 </head>
 <body>
@@ -64,28 +92,30 @@
     </div>
 
     <div id="loginScreen">
-        <h3>ADMIN ACCESS</h3>
-        <input type="password" id="adminKeyInput" placeholder="ENTER SECRET KEY">
+        <h2 style="margin-top: 0;">ADMIN LOGIN</h2>
+        <input type="password" id="adminKeyInput" placeholder="ENTER ACCESS KEY">
         <button class="neo-button" onclick="login()">Unlock Scanner</button>
-        <p id="loginMsg" style="color: red; font-size: 0.8rem; margin-top: 10px;"></p>
+        <p id="loginMsg" style="color: var(--red); font-weight: bold; margin-top: 15px;"></p>
     </div>
 
     <div id="scannerScreen">
         <div class="scanner-container">
             <video id="preview"></video>
+            <div class="scan-line"></div>
         </div>
-        <button class="neo-button" style="width: auto; margin-top: 20px; background: var(--red);" onclick="logout()">Lock Scanner</button>
+        <button class="neo-button" style="margin-top: 30px; background: #666;" onclick="logout()">Lock & Exit</button>
     </div>
 
     <div id="status" class="result">
         <div id="content"></div>
     </div>
 
+    <div class="dept-footer">DEPT. OF EARTH SCIENCES</div>
+
     <script>
         const API_BASE = "https://ff716cc4344c96.lhr.life/api/auth";
         let isProcessing = false;
 
-        // Check if already logged in
         window.onload = () => {
             if(sessionStorage.getItem('adminKey')) showScanner();
         };
@@ -93,19 +123,13 @@
         async function login() {
             const key = document.getElementById('adminKeyInput').value;
             const msg = document.getElementById('loginMsg');
-            
             try {
-                const res = await fetch(`${API_BASE}/check-admin`, {
-                    headers: { 'x-api-key': key }
-                });
-                
+                const res = await fetch(`${API_BASE}/check-admin`, { headers: { 'x-api-key': key } });
                 if (res.ok) {
                     sessionStorage.setItem('adminKey', key);
                     showScanner();
-                } else {
-                    msg.innerText = "INVALID KEY";
-                }
-            } catch (e) { msg.innerText = "SERVER ERROR"; }
+                } else { msg.innerText = "❌ INVALID ACCESS KEY"; }
+            } catch (e) { msg.innerText = "⚠️ SERVER CONNECTION ERROR"; }
         }
 
         function showScanner() {
@@ -114,10 +138,7 @@
             startCamera();
         }
 
-        function logout() {
-            sessionStorage.clear();
-            window.location.reload();
-        }
+        function logout() { sessionStorage.clear(); window.location.reload(); }
 
         function startCamera() {
             const video = document.getElementById('preview');
@@ -140,6 +161,7 @@
                 
                 if (code) { 
                     isProcessing = true; 
+                    if (window.navigator.vibrate) window.navigator.vibrate(150);
                     verifyTicket(code.data); 
                 }
             }
@@ -163,9 +185,15 @@
             const statusDiv = document.getElementById('status');
             const content = document.getElementById('content');
             statusDiv.style.display = 'block';
-            statusDiv.className = (status === 200) ? 'result success' : 'result fail';
-            content.innerHTML = `<h2>${status === 200 ? 'VALID' : 'FAILED'}</h2><p>${data.message || (data.user ? data.user.name : '')}</p>`;
-            setTimeout(() => { statusDiv.style.display = 'none'; isProcessing = false; }, 3000);
+            
+            if (status === 200) statusDiv.className = 'result success';
+            else if (status === 409) statusDiv.className = 'result duplicate';
+            else statusDiv.className = 'result fail';
+
+            content.innerHTML = `<h2 style="margin:0">${status === 200 ? '✅ VALID' : status === 409 ? '⚠️ RE-ENTRY' : '❌ FAILED'}</h2>
+                                 <p style="margin:15px 0 0;">${data.user ? data.user.name : data.message}</p>`;
+            
+            setTimeout(() => { statusDiv.style.display = 'none'; isProcessing = false; }, 3500);
         }
     </script>
 </body>

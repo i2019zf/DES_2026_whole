@@ -28,8 +28,20 @@ exports.verifyAndCheckMember = async (req, res) => {
 };
 
 // 2. SCANNER: The actual gatekeeper (Recording happens here)
+// backend/controllers/authController.js
+
 exports.verifyQR = async (req, res) => {
     const { token } = req.body;
+    const apiKey = req.headers['x-api-key']; // 1. Grab the key from headers
+
+    // 2. Validate the Admin Key first
+    if (!apiKey || apiKey !== process.env.SCANNER_ADMIN_KEY) {
+        return res.status(401).json({ 
+            success: false, 
+            message: "UNAUTHORIZED: Invalid Admin Key" 
+        });
+    }
+
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userResult = await db.query('SELECT * FROM members WHERE email = $1', [decoded.email]);

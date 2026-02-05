@@ -24,35 +24,49 @@
             min-height: 100vh;
         }
 
-        /* UI Header based on Brochure styling */
         .header {
             background: var(--black);
             color: var(--white);
             width: 100%;
-            padding: 20px 0;
+            padding: 15px 0;
             text-align: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+        }
+
+        /* Admin Key Input Styling */
+        .admin-controls {
+            margin-top: 10px;
+            padding: 0 20px;
+        }
+
+        #adminKey {
+            background: #333;
+            border: 2px solid var(--yellow);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            text-align: center;
+            font-family: monospace;
+            width: 200px;
+        }
+
+        #adminKey:focus {
+            outline: none;
+            background: #444;
         }
 
         .header h1 { 
             margin: 0; 
-            font-size: 1.5rem; 
+            font-size: 1.2rem; 
             letter-spacing: 2px;
             text-transform: uppercase;
         }
-        
-        .header p { 
-            margin: 5px 0 0; 
-            font-size: 0.9rem; 
-            opacity: 0.8; 
-        }
 
-        /* Camera Feed Container */
         .scanner-container {
             position: relative;
             width: 90%;
-            max-width: 500px; /* Larger feed */
+            max-width: 500px;
             aspect-ratio: 1 / 1;
             border: 8px solid var(--black);
             box-shadow: 15px 15px 0px var(--black);
@@ -69,7 +83,6 @@
             object-fit: cover; 
         }
 
-        /* Scanning Overlay UI */
         .scan-overlay {
             position: absolute;
             top: 0;
@@ -81,7 +94,6 @@
             box-sizing: border-box;
         }
 
-        /* Result Popup */
         .result { 
             position: fixed;
             bottom: 40px;
@@ -128,8 +140,10 @@
 </head>
 <body>
     <div class="header">
-        <p>IISER KOLKATA</p>
-        <h1>DES CONVERGENCE 2026 SCANNER</h1>
+        <h1>DES CONVERGENCE 2026</h1>
+        <div class="admin-controls">
+            <input type="password" id="adminKey" placeholder="ENTER ADMIN KEY" />
+        </div>
     </div>
 
     <div class="scanner-container">
@@ -151,6 +165,7 @@
         const statusDiv = document.getElementById('status');
         const content = document.getElementById('content');
         const timerBar = document.getElementById('timerBar');
+        const adminKeyInput = document.getElementById('adminKey');
         let isProcessing = false;
 
         navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
@@ -162,6 +177,12 @@
 
         function tick() {
             if (video.readyState === video.HAVE_ENOUGH_DATA && !isProcessing) {
+                // If admin key is missing, don't even scan
+                if (!adminKeyInput.value) {
+                    requestAnimationFrame(tick);
+                    return;
+                }
+
                 const canvas = document.createElement("canvas");
                 canvas.height = video.videoHeight;
                 canvas.width = video.videoWidth;
@@ -169,9 +190,9 @@
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const code = jsQR(imageData.data, imageData.width, imageData.height);
+                
                 if (code) { 
                     isProcessing = true; 
-                    // Add haptic feedback if supported
                     if (window.navigator.vibrate) window.navigator.vibrate(100);
                     verifyTicket(code.data); 
                 }
@@ -183,7 +204,10 @@
             try {
                 const res = await fetch('https://ff716cc4344c96.lhr.life/api/auth/verify-qr', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-api-key': adminKeyInput.value // Added the key here
+                    },
                     body: JSON.stringify({ token })
                 });
                 const data = await res.json();
@@ -196,12 +220,15 @@
             if (status === 200) {
                 statusDiv.className = 'result success';
                 content.innerHTML = `<h2 style="margin:0">VALID ENTRY</h2><p style="font-size:1.2rem; margin:10px 0 0;">${data.user.name}</p>`;
+            } else if (status === 401) {
+                statusDiv.className = 'result fail';
+                content.innerHTML = `<h2 style="margin:0">INVALID ADMIN KEY</h2>`;
             } else if (status === 409) {
                 statusDiv.className = 'result duplicate';
                 content.innerHTML = `<h2 style="margin:0">ALREADY SCANNED</h2><p style="font-size:1.2rem; margin:10px 0 0;">${data.user.name}</p>`;
             } else {
                 statusDiv.className = 'result fail';
-                content.innerHTML = `<h2 style="margin:0">${data.message}</h2>`;
+                content.innerHTML = `<h2 style="margin:0">${data.message || 'ERROR'}</h2>`;
             }
 
             timerBar.classList.remove('animate-timer');

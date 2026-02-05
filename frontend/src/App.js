@@ -11,7 +11,7 @@ function App() {
 
   // YOUR SPECIFIC CONFIGURATION
   const MY_GOOGLE_CLIENT_ID = "505819282429-hp3nhqnfun35rma9qlphh1818iek9meq.apps.googleusercontent.com";
-  const BASE_URL = "https://9fbf4dc12d8157.lhr.life";
+  const BASE_URL = "https://ff716cc4344c96.lhr.life";
 
   useEffect(() => {
     const script = document.createElement('script');

@@ -4,61 +4,146 @@
     <title>DES Scanner | CONVERGENCE 2026</title>
     <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
     <style>
-        :root {
-            --earth-green: #4ade80;
-            --caution-yellow: #facc15;
-            --error-red: #ff4d4d;
-            --deep-stone: #1a1a1a;
-            --already-blue: #3b82f6;
+        :root { 
+            --green: #4ade80; 
+            --yellow: #facc15; 
+            --red: #ff4d4d; 
+            --blue: #3b82f6; 
+            --black: #1a1a1a; 
+            --white: #ffffff;
         }
-        body { font-family: 'Inter', sans-serif; text-align: center; background: var(--caution-yellow); margin: 0; padding: 20px; }
-        #preview { width: 100%; max-width: 400px; border: 5px solid var(--deep-stone); box-shadow: 10px 10px 0px var(--deep-stone); margin-bottom: 20px; }
         
-        .result { 
-            margin: 20px auto; 
-            width: 90%; 
-            max-width: 380px; 
-            padding: 20px; 
-            border: 5px solid var(--deep-stone); 
-            display: none; 
-            position: relative;
-            overflow: hidden;
-            background: white;
-            box-shadow: 8px 8px 0px var(--deep-stone);
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--yellow); 
+            margin: 0; 
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
 
-        .success { background: var(--earth-green); }
-        .fail { background: var(--error-red); color: white; }
-        .duplicate { background: var(--already-blue); color: white; }
-
-        .timer-bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 10px;
-            background: rgba(0,0,0,0.3);
+        /* UI Header based on Brochure styling */
+        .header {
+            background: var(--black);
+            color: var(--white);
             width: 100%;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
         }
 
-        .animate-timer {
-            animation: shrink 4s linear forwards;
+        .header h1 { 
+            margin: 0; 
+            font-size: 1.5rem; 
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        .header p { 
+            margin: 5px 0 0; 
+            font-size: 0.9rem; 
+            opacity: 0.8; 
         }
 
-        @keyframes shrink {
-            from { width: 100%; }
-            to { width: 0%; }
+        /* Camera Feed Container */
+        .scanner-container {
+            position: relative;
+            width: 90%;
+            max-width: 500px; /* Larger feed */
+            aspect-ratio: 1 / 1;
+            border: 8px solid var(--black);
+            box-shadow: 15px 15px 0px var(--black);
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #preview { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+        }
+
+        /* Scanning Overlay UI */
+        .scan-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 2px solid rgba(255,255,255,0.3);
+            pointer-events: none;
+            box-sizing: border-box;
+        }
+
+        /* Result Popup */
+        .result { 
+            position: fixed;
+            bottom: 40px;
+            width: 85%; 
+            max-width: 400px; 
+            padding: 25px; 
+            border: 5px solid var(--black); 
+            display: none; 
+            z-index: 10;
+            background: white; 
+            box-shadow: 10px 10px 0px var(--black);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .success { background: var(--green); border-color: var(--black); }
+        .duplicate { background: var(--blue); color: white; border-color: var(--black); }
+        .fail { background: var(--red); color: white; border-color: var(--black); }
+
+        .timer-bar { 
+            position: absolute; 
+            bottom: 0; 
+            left: 0; 
+            height: 8px; 
+            background: rgba(0,0,0,0.2); 
+            width: 100%; 
+        }
+
+        .animate-timer { animation: shrink 4s linear forwards; }
+        @keyframes shrink { from { width: 100%; } to { width: 0%; } }
+
+        .dept-footer {
+            margin-top: auto;
+            padding: 20px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-transform: uppercase;
         }
     </style>
 </head>
 <body>
-    <h1 style="text-transform: uppercase;">DES Staff Scanner</h1>
-    <p>CONVERGENCE 2026 | M. N. SAHA AUDITORIUM</p>
-    
-    <video id="preview"></video>
-    
+    <div class="header">
+        <p>IISER KOLKATA</p>
+        <h1>DES CONVERGENCE 2026 SCANNER</h1>
+    </div>
+
+    <div class="scanner-container">
+        <video id="preview"></video>
+        <div class="scan-overlay"></div>
+    </div>
+
     <div id="status" class="result">
         <div id="content"></div>
         <div id="timerBar" class="timer-bar"></div>
+    </div>
+
+    <div class="dept-footer">
+        Department of Earth Sciences
     </div>
 
     <script>
@@ -67,9 +152,6 @@
         const content = document.getElementById('content');
         const timerBar = document.getElementById('timerBar');
         let isProcessing = false;
-
-        // --- UPDATE THIS URL ONLY ---
-        const API_URL = 'https://9fbf4dc12d8157.lhr.life/api/auth/verify-qr';
 
         navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
             video.srcObject = stream;
@@ -87,54 +169,47 @@
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-                if (code) {
-                    isProcessing = true;
-                    verifyTicket(code.data);
+                if (code) { 
+                    isProcessing = true; 
+                    // Add haptic feedback if supported
+                    if (window.navigator.vibrate) window.navigator.vibrate(100);
+                    verifyTicket(code.data); 
                 }
             }
             requestAnimationFrame(tick);
         }
 
-        async function verifyTicket(qrData) {
-            alert("Scanning: " + qrData);
+        async function verifyTicket(token) {
             try {
-                const res = await fetch(API_URL, {
+                const res = await fetch('https://9fbf4dc12d8157.lhr.life/api/auth/verify-qr', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ qrData }) // Backend expects 'qrData'
+                    body: JSON.stringify({ token })
                 });
-                
                 const data = await res.json();
-                
-                // Handle different backend status codes
-                if (res.status === 200) {
-                    showResult({ success: true, message: "VALID ENTRY", user: data.user, type: 'success' });
-                } else if (res.status === 409) {
-                    showResult({ success: false, message: "ALREADY SCANNED", user: data.user, type: 'duplicate' });
-                } else {
-                    showResult({ success: false, message: "INVALID TICKET", type: 'fail' });
-                }
-            } catch (err) {
-                showResult({ success: false, message: "CONNECTION ERROR", type: 'fail' });
-            }
+                showResult(data, res.status);
+            } catch (err) { showResult({ message: "SERVER ERROR" }, 500); }
         }
 
-        function showResult(data) {
+        function showResult(data, status) {
             statusDiv.style.display = 'block';
-            statusDiv.className = `result ${data.type}`;
-            content.innerHTML = `
-                <h2 style="margin:0">${data.message}</h2>
-                <p style="font-weight:bold; font-size:1.2rem">${data.user?.name || ''}</p>
-            `;
+            if (status === 200) {
+                statusDiv.className = 'result success';
+                content.innerHTML = `<h2 style="margin:0">VALID ENTRY</h2><p style="font-size:1.2rem; margin:10px 0 0;">${data.user.name}</p>`;
+            } else if (status === 409) {
+                statusDiv.className = 'result duplicate';
+                content.innerHTML = `<h2 style="margin:0">ALREADY SCANNED</h2><p style="font-size:1.2rem; margin:10px 0 0;">${data.user.name}</p>`;
+            } else {
+                statusDiv.className = 'result fail';
+                content.innerHTML = `<h2 style="margin:0">${data.message}</h2>`;
+            }
 
             timerBar.classList.remove('animate-timer');
-            void timerBar.offsetWidth; // Trigger reflow
+            void timerBar.offsetWidth; 
             timerBar.classList.add('animate-timer');
-
-            setTimeout(() => {
-                statusDiv.style.display = 'none';
-                isProcessing = false;
+            setTimeout(() => { 
+                statusDiv.style.display = 'none'; 
+                isProcessing = false; 
             }, 4000);
         }
     </script>

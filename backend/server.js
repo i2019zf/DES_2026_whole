@@ -6,6 +6,8 @@ const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 // Middlewares
 app.use(cors({
   origin: 'https://i2019zf.github.io'

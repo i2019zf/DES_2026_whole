@@ -1,87 +1,179 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>DES Scanner | CONVERGENCE 2026</title>
-    <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DES Convergence 2026 Scanner</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
-        :root { --green: #4ade80; --yellow: #facc15; --red: #ff4d4d; --blue: #3b82f6; --black: #1a1a1a; }
-        body { font-family: sans-serif; text-align: center; background: var(--yellow); margin: 0; padding: 20px; }
-        #preview { width: 100%; max-width: 400px; border: 5px solid var(--black); box-shadow: 10px 10px 0px var(--black); }
-        .result { margin: 20px auto; width: 90%; max-width: 380px; padding: 20px; border: 5px solid var(--black); display: none; position: relative; background: white; box-shadow: 8px 8px 0px var(--black); }
-        .success { background: var(--green); }
-        .duplicate { background: var(--blue); color: white; }
-        .fail { background: var(--red); color: white; }
-        .timer-bar { position: absolute; bottom: 0; left: 0; height: 10px; background: rgba(0,0,0,0.3); width: 100%; }
-        .animate-timer { animation: shrink 4s linear forwards; }
-        @keyframes shrink { from { width: 100%; } to { width: 0%; } }
+        :root {
+            --bg: #ffffff;
+            --main: #000000;
+            --valid: #22c55e;
+            --duplicate: #3b82f6;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            background: var(--main);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-bottom: 4px solid var(--main);
+        }
+
+        #video-container {
+            position: relative;
+            width: 90vw;
+            max-width: 500px;
+            aspect-ratio: 1;
+            margin-top: 20px;
+            border: 4px solid var(--main);
+            box-shadow: 10px 10px 0px var(--main);
+            overflow: hidden;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-align: center;
+        }
+
+        .timer-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.5);
+            width: 100%;
+            transform-origin: left;
+        }
     </style>
 </head>
 <body>
-    <h1>DES STAFF SCANNER</h1>
-    <video id="preview"></video>
-    <div id="status" class="result">
-        <div id="content"></div>
-        <div id="timerBar" class="timer-bar"></div>
-    </div>
 
-    <script>
-        const video = document.getElementById('preview');
-        const statusDiv = document.getElementById('status');
-        const content = document.getElementById('content');
-        const timerBar = document.getElementById('timerBar');
-        let isProcessing = false;
+<header>DES CONVERGENCE 2026 | SCANNER</header>
 
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
-            video.srcObject = stream;
-            video.setAttribute("playsinline", true);
-            video.play();
-            requestAnimationFrame(tick);
-        });
+<div id="video-container">
+    <video id="video" playsinline></video>
+    <canvas id="canvas" hidden></canvas>
+</div>
 
-        function tick() {
-            if (video.readyState === video.HAVE_ENOUGH_DATA && !isProcessing) {
-                const canvas = document.createElement("canvas");
-                canvas.height = video.videoHeight;
-                canvas.width = video.videoWidth;
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height);
-                if (code) { isProcessing = true; verifyTicket(code.data); }
+<div id="overlay">
+    <div id="status-text"></div>
+    <div id="user-info" style="font-size: 1.2rem; margin-top: 10px;"></div>
+    <div class="timer-bar" id="timer"></div>
+</div>
+
+<script>
+    const video = document.getElementById('video');
+    const canvasElement = document.getElementById('canvas');
+    const canvas = canvasElement.getContext('2d');
+    const overlay = document.getElementById('overlay');
+    const statusText = document.getElementById('status-text');
+    const timerBar = document.getElementById('timer');
+    
+    let isScanning = true;
+
+    // UPDATE THIS URL WITH YOUR CURRENT NGROK/PINGGY LINK
+    const API_URL = "https://iodimetric-malakai-indiscriminately.ngrok-free.dev/api/auth/verify-qr";
+
+    async function startCamera() {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        video.srcObject = stream;
+        video.setAttribute("playsinline", true);
+        video.play();
+        requestAnimationFrame(tick);
+    }
+
+    function tick() {
+        if (video.readyState === video.HAVE_ENOUGH_DATA && isScanning) {
+            canvasElement.height = video.videoHeight;
+            canvasElement.width = video.videoWidth;
+            canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+            const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+            if (code) {
+                handleScan(code.data);
             }
-            requestAnimationFrame(tick);
         }
+        requestAnimationFrame(tick);
+    }
 
-        async function verifyTicket(token) {
-            try {
-                const res = await fetch('https://iodimetric-malakai-indiscriminately.ngrok-free.dev/api/auth/verify-qr', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token })
-                });
-                const data = await res.json();
-                showResult(data, res.status);
-            } catch (err) { showResult({ message: "SERVER ERROR" }, 500); }
-        }
+    async function handleScan(qrData) {
+        isScanning = false;
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ qrData })
+            });
+            const result = await response.json();
 
-        function showResult(data, status) {
-            statusDiv.style.display = 'block';
-            if (status === 200) {
-                statusDiv.className = 'result success';
-                content.innerHTML = `<h2>VALID ENTRY</h2><p>${data.user.name}</p>`;
-            } else if (status === 409) {
-                statusDiv.className = 'result duplicate';
-                content.innerHTML = `<h2>ALREADY SCANNED</h2><p>${data.user.name}</p>`;
+            if (result.status === 'success') {
+                showOverlay("VALID ENTRY", "#22c55e", result.name);
+            } else if (result.status === 'already_scanned') {
+                showOverlay("ALREADY SCANNED", "#3b82f6", result.name);
             } else {
-                statusDiv.className = 'result fail';
-                content.innerHTML = `<h2>${data.message}</h2>`;
+                showOverlay("INVALID TICKET", "#ef4444", "Try again");
             }
-
-            timerBar.classList.remove('animate-timer');
-            void timerBar.offsetWidth; 
-            timerBar.classList.add('animate-timer');
-            setTimeout(() => { statusDiv.style.display = 'none'; isProcessing = false; }, 4000);
+        } catch (err) {
+            showOverlay("SERVER ERROR", "#000000", "Check connection");
         }
-    </script>
+    }
+
+    function showOverlay(text, color, subtext) {
+        overlay.style.display = 'flex';
+        overlay.style.backgroundColor = color;
+        statusText.innerText = text;
+        document.getElementById('user-info').innerText = subtext || "";
+        
+        timerBar.style.transition = 'none';
+        timerBar.style.transform = 'scaleX(1)';
+        
+        setTimeout(() => {
+            timerBar.style.transition = 'transform 4s linear';
+            timerBar.style.transform = 'scaleX(0)';
+        }, 50);
+
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            isScanning = true;
+        }, 4000);
+    }
+
+    startCamera();
+</script>
+
 </body>
 </html>

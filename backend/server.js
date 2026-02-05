@@ -7,8 +7,17 @@ const authRoutes = require('./routes/authRoutes');
 const app = express();
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: 'https://i2019zf.github.io'
+}));
 app.use(express.json());
+
+const rateLimit = require('express-rate-limit');
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per window
+});
+app.use('/api/', limiter);
 
 // Use our routes
 app.use('/api/auth', authRoutes);

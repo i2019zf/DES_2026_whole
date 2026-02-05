@@ -69,7 +69,7 @@
         let isProcessing = false;
 
         // --- UPDATE THIS URL ONLY ---
-        const API_URL = 'https://8262e288e76bc4.lhr.life/api/auth/verify-qr';
+        const API_URL = 'https://9fbf4dc12d8157.lhr.life/api/auth/verify-qr';
 
         navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
             video.srcObject = stream;
@@ -97,6 +97,7 @@
         }
 
         async function verifyTicket(qrData) {
+            alert("Scanning: " + qrData);
             try {
                 const res = await fetch(API_URL, {
                     method: 'POST',

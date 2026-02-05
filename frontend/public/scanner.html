@@ -5,195 +5,141 @@
     <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
     <style>
         :root { 
-            --green: #4ade80; 
-            --yellow: #facc15; 
-            --red: #ff4d4d; 
-            --blue: #3b82f6; 
-            --black: #1a1a1a; 
-            --white: #ffffff;
+            --green: #4ade80; --yellow: #facc15; --red: #ff4d4d; 
+            --blue: #3b82f6; --black: #1a1a1a; --white: #ffffff;
         }
         
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: var(--yellow); 
-            margin: 0; 
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif; background: var(--yellow); 
+            margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
         }
 
         .header {
-            background: var(--black);
-            color: var(--white);
-            width: 100%;
-            padding: 15px 0;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            margin-bottom: 20px;
+            background: var(--black); color: var(--white); width: 100%;
+            padding: 20px 0; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
-        /* Admin Key Input Styling */
-        .admin-controls {
-            margin-top: 10px;
-            padding: 0 20px;
+        /* Login Screen Styling */
+        #loginScreen {
+            margin-top: 50px; background: white; padding: 30px;
+            border: 5px solid var(--black); box-shadow: 10px 10px 0px var(--black);
+            text-align: center; width: 80%; max-width: 350px;
         }
 
-        #adminKey {
-            background: #333;
-            border: 2px solid var(--yellow);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 4px;
-            text-align: center;
-            font-family: monospace;
-            width: 200px;
+        input {
+            width: 100%; padding: 12px; margin: 15px 0; border: 3px solid var(--black);
+            box-sizing: border-box; font-family: monospace; font-size: 1rem;
         }
 
-        #adminKey:focus {
-            outline: none;
-            background: #444;
+        .neo-button {
+            background: var(--black); color: white; border: none; padding: 12px 25px;
+            font-weight: bold; cursor: pointer; width: 100%; text-transform: uppercase;
         }
 
-        .header h1 { 
-            margin: 0; 
-            font-size: 1.2rem; 
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
+        /* Scanner Screen (Hidden by default) */
+        #scannerScreen { display: none; width: 100%; flex-direction: column; align-items: center; }
 
         .scanner-container {
-            position: relative;
-            width: 90%;
-            max-width: 500px;
-            aspect-ratio: 1 / 1;
-            border: 8px solid var(--black);
-            box-shadow: 15px 15px 0px var(--black);
-            background: #000;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            position: relative; width: 90%; max-width: 500px; aspect-ratio: 1 / 1;
+            border: 8px solid var(--black); box-shadow: 15px 15px 0px var(--black);
+            background: #000; margin-top: 20px;
         }
 
-        #preview { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-        }
-
-        .scan-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 2px solid rgba(255,255,255,0.3);
-            pointer-events: none;
-            box-sizing: border-box;
-        }
+        #preview { width: 100%; height: 100%; object-fit: cover; }
 
         .result { 
-            position: fixed;
-            bottom: 40px;
-            width: 85%; 
-            max-width: 400px; 
-            padding: 25px; 
-            border: 5px solid var(--black); 
-            display: none; 
-            z-index: 10;
-            background: white; 
-            box-shadow: 10px 10px 0px var(--black);
-            animation: slideUp 0.3s ease-out;
+            position: fixed; bottom: 40px; width: 85%; max-width: 400px; 
+            padding: 25px; border: 5px solid var(--black); display: none; 
+            background: white; box-shadow: 10px 10px 0px var(--black);
         }
 
-        @keyframes slideUp {
-            from { transform: translateY(100px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .success { background: var(--green); border-color: var(--black); }
-        .duplicate { background: var(--blue); color: white; border-color: var(--black); }
-        .fail { background: var(--red); color: white; border-color: var(--black); }
-
-        .timer-bar { 
-            position: absolute; 
-            bottom: 0; 
-            left: 0; 
-            height: 8px; 
-            background: rgba(0,0,0,0.2); 
-            width: 100%; 
-        }
-
-        .animate-timer { animation: shrink 4s linear forwards; }
-        @keyframes shrink { from { width: 100%; } to { width: 0%; } }
-
-        .dept-footer {
-            margin-top: auto;
-            padding: 20px;
-            font-weight: bold;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-        }
+        .success { background: var(--green); }
+        .fail { background: var(--red); color: white; }
     </style>
 </head>
 <body>
     <div class="header">
+        <p>IISER KOLKATA</p>
         <h1>DES CONVERGENCE 2026</h1>
-        <div class="admin-controls">
-            <input type="password" id="adminKey" placeholder="ENTER ADMIN KEY" />
-        </div>
     </div>
 
-    <div class="scanner-container">
-        <video id="preview"></video>
-        <div class="scan-overlay"></div>
+    <div id="loginScreen">
+        <h3>ADMIN ACCESS</h3>
+        <input type="password" id="adminKeyInput" placeholder="ENTER SECRET KEY">
+        <button class="neo-button" onclick="login()">Unlock Scanner</button>
+        <p id="loginMsg" style="color: red; font-size: 0.8rem; margin-top: 10px;"></p>
+    </div>
+
+    <div id="scannerScreen">
+        <div class="scanner-container">
+            <video id="preview"></video>
+        </div>
+        <button class="neo-button" style="width: auto; margin-top: 20px; background: var(--red);" onclick="logout()">Lock Scanner</button>
     </div>
 
     <div id="status" class="result">
         <div id="content"></div>
-        <div id="timerBar" class="timer-bar"></div>
-    </div>
-
-    <div class="dept-footer">
-        Department of Earth Sciences
     </div>
 
     <script>
-        const video = document.getElementById('preview');
-        const statusDiv = document.getElementById('status');
-        const content = document.getElementById('content');
-        const timerBar = document.getElementById('timerBar');
-        const adminKeyInput = document.getElementById('adminKey');
+        const API_BASE = "https://ff716cc4344c96.lhr.life/api/auth";
         let isProcessing = false;
 
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
-            video.srcObject = stream;
-            video.setAttribute("playsinline", true);
-            video.play();
-            requestAnimationFrame(tick);
-        });
+        // Check if already logged in
+        window.onload = () => {
+            if(sessionStorage.getItem('adminKey')) showScanner();
+        };
+
+        async function login() {
+            const key = document.getElementById('adminKeyInput').value;
+            const msg = document.getElementById('loginMsg');
+            
+            try {
+                const res = await fetch(`${API_BASE}/check-admin`, {
+                    headers: { 'x-api-key': key }
+                });
+                
+                if (res.ok) {
+                    sessionStorage.setItem('adminKey', key);
+                    showScanner();
+                } else {
+                    msg.innerText = "INVALID KEY";
+                }
+            } catch (e) { msg.innerText = "SERVER ERROR"; }
+        }
+
+        function showScanner() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('scannerScreen').style.display = 'flex';
+            startCamera();
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.reload();
+        }
+
+        function startCamera() {
+            const video = document.getElementById('preview');
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
+                video.srcObject = stream;
+                video.setAttribute("playsinline", true);
+                video.play();
+                requestAnimationFrame(tick);
+            });
+        }
 
         function tick() {
+            const video = document.getElementById('preview');
             if (video.readyState === video.HAVE_ENOUGH_DATA && !isProcessing) {
-                // If admin key is missing, don't even scan
-                if (!adminKeyInput.value) {
-                    requestAnimationFrame(tick);
-                    return;
-                }
-
                 const canvas = document.createElement("canvas");
-                canvas.height = video.videoHeight;
-                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight; canvas.width = video.videoWidth;
                 const ctx = canvas.getContext("2d");
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                const code = jsQR(ctx.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height);
                 
                 if (code) { 
                     isProcessing = true; 
-                    if (window.navigator.vibrate) window.navigator.vibrate(100);
                     verifyTicket(code.data); 
                 }
             }
@@ -201,13 +147,11 @@
         }
 
         async function verifyTicket(token) {
+            const key = sessionStorage.getItem('adminKey');
             try {
-                const res = await fetch('https://ff716cc4344c96.lhr.life/api/auth/verify-qr', {
+                const res = await fetch(`${API_BASE}/verify-qr`, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'x-api-key': adminKeyInput.value // Added the key here
-                    },
+                    headers: { 'Content-Type': 'application/json', 'x-api-key': key },
                     body: JSON.stringify({ token })
                 });
                 const data = await res.json();
@@ -216,28 +160,12 @@
         }
 
         function showResult(data, status) {
+            const statusDiv = document.getElementById('status');
+            const content = document.getElementById('content');
             statusDiv.style.display = 'block';
-            if (status === 200) {
-                statusDiv.className = 'result success';
-                content.innerHTML = `<h2 style="margin:0">VALID ENTRY</h2><p style="font-size:1.2rem; margin:10px 0 0;">${data.user.name}</p>`;
-            } else if (status === 401) {
-                statusDiv.className = 'result fail';
-                content.innerHTML = `<h2 style="margin:0">INVALID ADMIN KEY</h2>`;
-            } else if (status === 409) {
-                statusDiv.className = 'result duplicate';
-                content.innerHTML = `<h2 style="margin:0">ALREADY SCANNED</h2><p style="font-size:1.2rem; margin:10px 0 0;">${data.user.name}</p>`;
-            } else {
-                statusDiv.className = 'result fail';
-                content.innerHTML = `<h2 style="margin:0">${data.message || 'ERROR'}</h2>`;
-            }
-
-            timerBar.classList.remove('animate-timer');
-            void timerBar.offsetWidth; 
-            timerBar.classList.add('animate-timer');
-            setTimeout(() => { 
-                statusDiv.style.display = 'none'; 
-                isProcessing = false; 
-            }, 4000);
+            statusDiv.className = (status === 200) ? 'result success' : 'result fail';
+            content.innerHTML = `<h2>${status === 200 ? 'VALID' : 'FAILED'}</h2><p>${data.message || (data.user ? data.user.name : '')}</p>`;
+            setTimeout(() => { statusDiv.style.display = 'none'; isProcessing = false; }, 3000);
         }
     </script>
 </body>

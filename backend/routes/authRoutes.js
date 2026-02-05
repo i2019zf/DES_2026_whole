@@ -11,3 +11,11 @@ router.post('/generate-ticket', generateRollingTicket);
 router.post('/verify-qr', verifyQR);
 
 module.exports = router;
+
+router.get('/check-admin', (req, res) => {
+    const apiKey = req.headers['x-api-key'];
+    if (apiKey === process.env.SCANNER_ADMIN_KEY) {
+        return res.sendStatus(200);
+    }
+    res.sendStatus(401);
+});

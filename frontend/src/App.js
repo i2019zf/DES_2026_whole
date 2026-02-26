@@ -96,6 +96,23 @@ function App() {
     }
   }, [user, getNewTicket]);
 
+  useEffect(() => {
+    if (activeUrl === BACKUP_URL) {
+      const monitor = setInterval(async () => {
+        try {
+          console.log("Checking if Primary (zrok) is back online...");
+          const res = await axios.get(`${PRIMARY_URL}/api/auth/health`, { timeout: 2000 });
+          if (res.status === 200) {
+            console.log("✅ Primary is back! Switching back to zrok.");
+            setActiveUrl(PRIMARY_URL);
+          }
+        } catch (e) {
+        }
+      }, 30000); 
+
+      return () => clearInterval(monitor);
+    }
+  }, [activeUrl, PRIMARY_URL, BACKUP_URL]);
   return (
     <div className="App" key={user ? 'in' : 'out'}>
       <div className="neo-container">

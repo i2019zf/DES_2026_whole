@@ -96,7 +96,7 @@ function App() {
     }
   }, [user, getNewTicket]);
 
-  useEffect(() => {
+   useEffect(() => {
     if (activeUrl === BACKUP_URL) {
       const monitor = setInterval(async () => {
         try {

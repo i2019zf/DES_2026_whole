@@ -17,15 +17,20 @@ function App() {
   const MY_GOOGLE_CLIENT_ID = "505819282429-hp3nhqnfun35rma9qlphh1818iek9meq.apps.googleusercontent.com";
 
   // Tunnel Health Check Logic
-  const checkTunnelHealth = useCallback(async () => {
+   const checkTunnelHealth = useCallback(async () => {
     try {
-      await axios.get(`${PRIMARY_URL}/api/auth/health`, { timeout: 2500 });
-      setActiveUrl(PRIMARY_URL);
+      const response = await axios.get(`${PRIMARY_URL}/api/auth/health`, { timeout: 3000 });
+      if (response.status === 200) {
+        setActiveUrl(PRIMARY_URL);
+      }
     } catch (err) {
-      console.warn("Primary tunnel down, switching to backup.");
-      setActiveUrl(BACKUP_URL);
+      console.error("Zrok Health Check Failed:", err.message);
+      if (err.message.includes('timeout') || err.message.includes('Network Error')) {
+        console.warn("🚀 Switching to NGROK backup...");
+        setActiveUrl(BACKUP_URL);
+      }
     }
-  }, []);
+  }, [PRIMARY_URL, BACKUP_URL]);
 
   useEffect(() => {
     checkTunnelHealth();

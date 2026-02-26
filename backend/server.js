@@ -1,4 +1,3 @@
-// backend/server.js
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
@@ -20,6 +19,11 @@ const limiter = rateLimit({
   max: 100 // limit each IP to 100 requests per window
 });
 app.use('/api/', limiter);
+
+// FAILOVER HEALTH ROUTE
+app.get('/api/auth/health', (req, res) => {
+  res.status(200).send("OK");
+});
 
 // Use our routes
 app.use('/api/auth', authRoutes);

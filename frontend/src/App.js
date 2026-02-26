@@ -9,22 +9,37 @@ function App() {
   const [error, setError] = useState('');
   const [scriptLoaded, setScriptLoaded] = useState(false);
 
-  // YOUR SPECIFIC CONFIGURATION
+  // FAILOVER CONFIGURATION
+  const PRIMARY_URL = "https://desscanner2026.share.zrok.io";
+  const BACKUP_URL = "https://iodimetric-malakai-indiscriminately.ngrok-free.dev"; 
+  const [activeUrl, setActiveUrl] = useState(PRIMARY_URL);
+
   const MY_GOOGLE_CLIENT_ID = "505819282429-hp3nhqnfun35rma9qlphh1818iek9meq.apps.googleusercontent.com";
-  const BASE_URL = "https://desscanner2026.share.zrok.io";
+
+  // Tunnel Health Check Logic
+  const checkTunnelHealth = useCallback(async () => {
+    try {
+      await axios.get(`${PRIMARY_URL}/api/auth/health`, { timeout: 2500 });
+      setActiveUrl(PRIMARY_URL);
+    } catch (err) {
+      console.warn("Primary tunnel down, switching to backup.");
+      setActiveUrl(BACKUP_URL);
+    }
+  }, []);
 
   useEffect(() => {
+    checkTunnelHealth();
     const script = document.createElement('script');
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true;
     script.defer = true;
     script.onload = () => setScriptLoaded(true);
     document.head.appendChild(script);
-  }, []);
+  }, [checkTunnelHealth]);
 
   const handleCallbackResponse = useCallback(async (response) => {
     try {
-      const res = await axios.post(`${BASE_URL}/api/auth/verify`, {
+      const res = await axios.post(`${activeUrl}/api/auth/verify`, {
         idToken: response.credential
       });
       if (res.data.success) {
@@ -33,20 +48,23 @@ function App() {
       }
     } catch (err) {
       setError(err.response?.data?.message || "Login Failed");
+      // Immediate retry switch if request fails
+      checkTunnelHealth();
     }
-  }, [BASE_URL]);
+  }, [activeUrl, checkTunnelHealth]);
 
   const getNewTicket = useCallback(async () => {
     if (!user) return;
     try {
-      const res = await axios.post(`${BASE_URL}/api/auth/generate-ticket`, { 
+      const res = await axios.post(`${activeUrl}/api/auth/generate-ticket`, { 
         email: user.email 
       });
       if(res.data.success) setTicket(res.data.ticketToken);
     } catch (err) {
       console.error("Ticket refresh failed.");
+      checkTunnelHealth();
     }
-  }, [user, BASE_URL]);
+  }, [user, activeUrl, checkTunnelHealth]);
 
   useEffect(() => {
     if (scriptLoaded && !user) {
